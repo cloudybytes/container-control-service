@@ -1,11 +1,11 @@
 from django.shortcuts import render
 from django.http.response import HttpResponse, JsonResponse
-from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 import docker
 import secrets
 import string
 import json
+import random
 
 from .models import running_container_names
 
@@ -22,8 +22,9 @@ def spin_up(request):
                       for i in range(10))
         service_name = service + "_" + service_name
         running_container_names.append(service_name)
-        print(client.containers.run(service, name = service_name, network_mode = "host", detach=True))
-        return JsonResponse({"state":"spinup","service_name":service_name})
+        random_host_port = random.randint(43000, 44000)
+        print(client.containers.run(service, name = service_name, ports = {'8005/tcp': random_host_port}, detach=True))
+        return JsonResponse({"state":"spinup","service_name":service_name, "host_port": random_host_port})
 
 @csrf_exempt
 def spin_down(request):
